@@ -1,0 +1,238 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+
+enum StaffRole {
+  SUPER_ADMIN
+  ADMIN
+  DOCTOR
+}
+
+enum Gender {
+  MALE
+  FEMALE
+  OTHER
+  UNKNOWN
+}
+
+enum AppointmentStatus {
+  BOOKED
+  CONFIRMED
+  RESCHEDULED
+  IN_PROGRESS
+  CANCELLED_BY_PATIENT
+  CANCELLED_BY_STAFF
+  COMPLETED
+  NO_SHOW
+}
+
+enum QuestionStatus {
+  PENDING
+  ANSWERED
+  CLOSED
+}
+
+model StaffAccount {
+  id            Int       @id @default(autoincrement())
+  fullName      String    @db.VarChar(100)
+  email         String    @unique @db.Citext
+  passwordHash  String
+  role          StaffRole
+  gender        Gender    @default(UNKNOWN)
+  dateOfBirth   DateTime? @db.Date
+  createdAt     DateTime  @default(now()) @db.Timestamptz(6)
+  updatedAt     DateTime  @default(now()) @updatedAt @db.Timestamptz(6)
+
+  // Relations
+  doctor        Doctor?
+  blogs         Blog[]
+}
+
+model Patient {
+  id           String    @id @db.VarChar(12)
+  fullName     String    @db.VarChar(100)
+  phoneNumber  String?   @db.VarChar(15)
+  email        String?   @db.Citext
+  dateOfBirth  DateTime? @db.Date
+  gender       Gender    @default(UNKNOWN)
+  address      String?
+  createdAt    DateTime  @default(now()) @db.Timestamptz(6)
+
+  // Relations
+  appointments Appointment[]
+  reviews      Review[]
+
+  @@index([email])
+}
+
+model Doctor {
+  id               Int           @id @default(autoincrement())
+  staffAccountId   Int           @unique
+  degree           String?       @db.VarChar(100)
+  position         String[]
+  introduction     String?
+  memberships      String[]
+  awards           String[]
+  research         String?
+  trainingProcess  String[]
+  experience       String[]
+  avatarUrl        String?
+  portrait         String?
+
+  // Relations
+  staffAccount     StaffAccount  @relation(fields: [staffAccountId], references: [id])
+  doctorSpecialties DoctorSpecialty[]
+  schedules        Schedule[]
+  reviews          Review[]
+  answers          Answer[]
+}
+
+model Specialty {
+  id          Int      @id @default(autoincrement())
+  name        String   @db.VarChar(200)
+  description String?
+  createdAt   DateTime @default(now()) @db.Timestamptz(6)
+
+  // Relations
+  doctorSpecialties DoctorSpecialty[]
+  questions        Question[]
+}
+
+model WorkLocation {
+  id         Int      @id @default(autoincrement())
+  name       String   @db.VarChar(200)
+  address    String
+  createdAt  DateTime @default(now()) @db.Timestamptz(6)
+
+  // Relations
+  schedules  Schedule[]
+}
+
+model BlogCategory {
+  id    Int     @id @default(autoincrement())
+  name  String  @unique @db.VarChar(100)
+
+  // Relations
+  blogs Blog[]
+}
+
+model Blog {
+  id          Int           @id @default(autoincrement())
+  title       String        @db.VarChar(500)
+  description String?
+  content     String
+  authorId    Int
+  categoryId  Int?
+  createdAt   DateTime      @default(now()) @db.Timestamptz(6)
+  updatedAt   DateTime      @default(now()) @updatedAt @db.Timestamptz(6)
+
+  // Relations
+  author      StaffAccount  @relation(fields: [authorId], references: [id])
+  category    BlogCategory? @relation(fields: [categoryId], references: [id])
+
+  @@index([categoryId, createdAt])
+}
+
+model Schedule {
+  id              Int       @id @default(autoincrement())
+  doctorId        Int
+  workLocationId  Int
+  date            DateTime  @db.Date
+  timeSlotStart   DateTime  @db.Time(6)
+  timeSlotEnd     DateTime  @db.Time(6)
+
+  // Relations
+  doctor          Doctor     @relation(fields: [doctorId], references: [id])
+  workLocation    WorkLocation @relation(fields: [workLocationId], references: [id])
+  appointment     Appointment?
+
+  @@unique([doctorId, workLocationId, date, timeSlotStart, timeSlotEnd])
+  @@index([doctorId, date])
+}
+
+model Appointment {
+  id          Int        @id @default(autoincrement())
+  patientId   String     @db.VarChar(12)
+  scheduleId  Int        @unique
+  symptoms    String?
+  notes       String?
+  status      AppointmentStatus @default(BOOKED)
+  createdAt   DateTime   @default(now()) @db.Timestamptz(6)
+  updatedAt   DateTime   @default(now()) @updatedAt @db.Timestamptz(6)
+
+  // Relations
+  patient     Patient    @relation(fields: [patientId], references: [id])
+  schedule    Schedule   @relation(fields: [scheduleId], references: [id])
+
+  @@index([patientId])
+  @@index([status, createdAt])
+}
+
+model Review {
+  id           Int       @id @default(autoincrement())
+  doctorId     Int
+  patientId    String?
+  rating       Int
+  content      String
+  isAnonymous  Boolean   @default(false)
+  createdAt    DateTime  @default(now()) @db.Timestamptz(6)
+
+  // Relations
+  doctor       Doctor    @relation(fields: [doctorId], references: [id])
+  patient      Patient?  @relation(fields: [patientId], references: [id])
+
+  @@index([doctorId, createdAt])
+}
+
+model Question {
+  id           Int            @id @default(autoincrement())
+  specialtyId  Int
+  askerName    String?        @db.VarChar(100)
+  askerEmail   String?        @db.Citext
+  title        String         @db.VarChar(100)
+  content      String
+  isAnonymous  Boolean        @default(false)
+  status       QuestionStatus @default(PENDING)
+  createdAt    DateTime       @default(now()) @db.Timestamptz(6)
+
+  // Relations
+  specialty    Specialty      @relation(fields: [specialtyId], references: [id])
+  answer       Answer?
+}
+
+model Answer {
+  id          Int      @id @default(autoincrement())
+  questionId  Int      @unique
+  doctorId    Int
+  content     String
+  createdAt   DateTime @default(now()) @db.Timestamptz(6)
+
+  // Relations
+  question    Question @relation(fields: [questionId], references: [id])
+  doctor      Doctor   @relation(fields: [doctorId], references: [id])
+}
+
+model DoctorSpecialty {
+  doctorId    Int
+  specialtyId Int
+
+  // Relations
+  doctor      Doctor    @relation(fields: [doctorId], references: [id])
+  specialty   Specialty @relation(fields: [specialtyId], references: [id])
+
+  @@id([doctorId, specialtyId])
+}
+
