@@ -356,6 +356,48 @@ For support and questions:
 
 ---
 
+## 🚀 CI/CD Pipeline
+
+### GitHub Actions Workflows
+
+- **CI Pipeline**: Automated testing, linting, and building on every push/PR
+- **Security & Quality**: Security audits, dependency checks, and code coverage
+- **Auto Deploy**: Automatic deployment to Render on successful builds
+
+### Setup CI/CD
+
+1. **GitHub Secrets** (Repository Settings > Secrets):
+
+   ```
+   RENDER_SERVICE_ID=your_render_service_id
+   RENDER_API_KEY=your_render_api_key
+   ```
+
+2. **Workflow Triggers**:
+   - Push to `master`/`main`/`develop` branches
+   - Pull requests
+   - Weekly security scans
+
+3. **Pipeline Stages**:
+   - 🧪 **Test**: Unit tests, E2E tests, database migrations
+   - 🔒 **Security**: Dependency audit, vulnerability scanning
+   - 📊 **Quality**: ESLint, Prettier, TypeScript compilation
+   - 🚀 **Deploy**: Automatic deployment to Render
+
+### Commands
+
+```bash
+# Check code quality
+pnpm run lint:check
+pnpm run format:check
+
+# Run tests with coverage
+pnpm run test:cov
+
+# Health check
+pnpm run health-check
+```
+
 <div align="center">
   <p>Built with ❤️ by the MedicalInk Team</p>
   <p>© 2025 MedicalInk. All rights reserved.</p>

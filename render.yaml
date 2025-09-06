@@ -1,0 +1,32 @@
+services:
+  - type: web
+    name: medicalink-be
+    env: node
+    plan: free
+    buildCommand:
+      pnpm install && pnpm prisma generate && pnpm run build && pnpm prisma
+      migrate deploy
+    startCommand: pnpm run start:prod
+    healthCheckPath: /api
+    autoDeploy: false # Manual deploy after CI passes
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DATABASE_URL
+        fromDatabase:
+          name: medicalink-db
+          property: connectionString
+      - key: JWT_SECRET
+        generateValue: true
+      - key: JWT_REFRESH_SECRET
+        generateValue: true
+      - key: APP_PORT
+        value: '3000'
+      - key: APP_API_PREFIX
+        value: 'api'
+
+databases:
+  - name: medicalink-db
+    databaseName: medicalink
+    user: medicalink
+    plan: free

@@ -3,6 +3,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { HeaderResolver, I18nModule } from 'nestjs-i18n';
 import path from 'path';
 import { PrismaModule } from 'prisma/prisma.module';
+import { AppController } from './app.controller';
 import { AuthModule } from './auth/auth.module';
 import authConfig from './auth/config/auth.config';
 import { CommonModule } from './common/common.module';
@@ -49,6 +50,7 @@ import { MorganMiddleware } from './utils/morgan.middleware';
     AuthModule,
     StaffAccountsModule,
   ],
+  controllers: [AppController],
 })
 export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer): void {
