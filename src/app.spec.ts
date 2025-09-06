@@ -1,13 +1,16 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { AppModule } from './app.module';
+import { AppController } from './app.controller';
 
-describe('AppModule', () => {
+describe('AppController', () => {
+  let controller: AppController;
   let module: TestingModule;
 
   beforeEach(async () => {
     module = await Test.createTestingModule({
-      imports: [AppModule],
+      controllers: [AppController],
     }).compile();
+
+    controller = module.get<AppController>(AppController);
   });
 
   afterEach(async () => {
@@ -17,10 +20,25 @@ describe('AppModule', () => {
   });
 
   it('should be defined', () => {
-    expect(module).toBeDefined();
+    expect(controller).toBeDefined();
   });
 
-  it('should compile the module', () => {
-    expect(module).toBeInstanceOf(TestingModule);
+  it('should return health status', () => {
+    const result = controller.getHealth();
+    expect(result).toHaveProperty('status');
+    expect(result).toHaveProperty('timestamp');
+    expect(result).toHaveProperty('service');
+    expect(result).toHaveProperty('version');
+    expect(result.status).toBe('OK');
+  });
+
+  it('should return health check', () => {
+    const result = controller.getHealthCheck();
+    expect(result).toHaveProperty('status');
+    expect(result).toHaveProperty('timestamp');
+    expect(result).toHaveProperty('service');
+    expect(result).toHaveProperty('database');
+    expect(result).toHaveProperty('version');
+    expect(result.status).toBe('OK');
   });
 });
