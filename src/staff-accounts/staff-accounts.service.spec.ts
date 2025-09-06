@@ -5,9 +5,10 @@ import { StaffAccountsService } from './staff-accounts.service';
 describe('StaffAccountsService', () => {
   let service: StaffAccountsService;
   let prismaService: PrismaService;
+  let module: TestingModule;
 
   beforeEach(async () => {
-    const module: TestingModule = await Test.createTestingModule({
+    module = await Test.createTestingModule({
       providers: [
         StaffAccountsService,
         {
@@ -27,6 +28,12 @@ describe('StaffAccountsService', () => {
 
     service = module.get<StaffAccountsService>(StaffAccountsService);
     prismaService = module.get<PrismaService>(PrismaService);
+  });
+
+  afterEach(async () => {
+    if (module) {
+      await module.close();
+    }
   });
 
   it('should be defined', () => {

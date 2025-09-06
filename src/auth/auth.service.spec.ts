@@ -8,9 +8,10 @@ import { AuthService } from './auth.service';
 describe('AuthService', () => {
   let service: AuthService;
   let staffAccountsService: StaffAccountsService;
+  let module: TestingModule;
 
   beforeEach(async () => {
-    const module: TestingModule = await Test.createTestingModule({
+    module = await Test.createTestingModule({
       providers: [
         AuthService,
         {
@@ -50,6 +51,12 @@ describe('AuthService', () => {
     service = module.get<AuthService>(AuthService);
     staffAccountsService =
       module.get<StaffAccountsService>(StaffAccountsService);
+  });
+
+  afterEach(async () => {
+    if (module) {
+      await module.close();
+    }
   });
 
   it('should be defined', () => {
