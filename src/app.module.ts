@@ -5,8 +5,10 @@ import path from 'path';
 import { PrismaModule } from 'prisma/prisma.module';
 import { AuthModule } from './auth/auth.module';
 import authConfig from './auth/config/auth.config';
+import { CommonModule } from './common/common.module';
 import appConfig from './config/app.config';
 import { AllConfigType } from './config/config.type';
+import { StaffAccountsModule } from './staff-accounts/staff-accounts.module';
 import { MorganMiddleware } from './utils/morgan.middleware';
 
 @Module({
@@ -42,8 +44,10 @@ import { MorganMiddleware } from './utils/morgan.middleware';
       imports: [ConfigModule],
       inject: [ConfigService],
     }),
+    CommonModule,
     PrismaModule,
     AuthModule,
+    StaffAccountsModule,
   ],
 })
 export class AppModule implements NestModule {

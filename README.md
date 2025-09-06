@@ -56,7 +56,6 @@
 ### 📊 Advanced Features
 
 - **Internationalization**: Multi-language support (English/Vietnamese)
-- **API Documentation**: Auto-generated Swagger documentation
 - **Request Logging**: Morgan middleware for HTTP request logging
 - **Data Validation**: Comprehensive input validation with class-validator
 - **Type Safety**: Full TypeScript implementation
@@ -220,17 +219,8 @@ pnpm start:prod
 The application will be available at:
 
 - **API**: http://localhost:3000/api
-- **Swagger Documentation**: http://localhost:3000/docs
 
 ## 📚 API Documentation
-
-### Swagger UI
-
-Access the interactive API documentation at `/docs` endpoint:
-
-```
-http://localhost:3000/docs
-```
 
 ### API Endpoints
 

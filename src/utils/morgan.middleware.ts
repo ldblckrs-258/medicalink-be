@@ -4,7 +4,7 @@ import morgan from 'morgan';
 
 @Injectable()
 export class MorganMiddleware implements NestMiddleware {
-  private morgan = morgan('[:method] ":url" -> :status | :response-time ms', {
+  private morgan = morgan('[API] :method :url -> :status | :response-time ms', {
     stream: {
       write: (message: string) => {
         Logger.log(message.trim());

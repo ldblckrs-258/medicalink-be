@@ -15,7 +15,7 @@ CREATE TYPE "public"."QuestionStatus" AS ENUM ('PENDING', 'ANSWERED', 'CLOSED');
 
 -- CreateTable
 CREATE TABLE "public"."StaffAccount" (
-    "id" SERIAL NOT NULL,
+    "id" TEXT NOT NULL,
     "fullName" VARCHAR(100) NOT NULL,
     "email" CITEXT NOT NULL,
     "passwordHash" TEXT NOT NULL,
@@ -30,7 +30,7 @@ CREATE TABLE "public"."StaffAccount" (
 
 -- CreateTable
 CREATE TABLE "public"."Patient" (
-    "id" VARCHAR(12) NOT NULL,
+    "id" TEXT NOT NULL,
     "fullName" VARCHAR(100) NOT NULL,
     "phoneNumber" VARCHAR(15),
     "email" CITEXT,
@@ -44,8 +44,8 @@ CREATE TABLE "public"."Patient" (
 
 -- CreateTable
 CREATE TABLE "public"."Doctor" (
-    "id" SERIAL NOT NULL,
-    "staffAccountId" INTEGER NOT NULL,
+    "id" TEXT NOT NULL,
+    "staffAccountId" TEXT NOT NULL,
     "degree" VARCHAR(100),
     "position" TEXT[],
     "introduction" TEXT,
@@ -62,7 +62,7 @@ CREATE TABLE "public"."Doctor" (
 
 -- CreateTable
 CREATE TABLE "public"."Specialty" (
-    "id" SERIAL NOT NULL,
+    "id" TEXT NOT NULL,
     "name" VARCHAR(200) NOT NULL,
     "description" TEXT,
     "createdAt" TIMESTAMPTZ(6) NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -72,7 +72,7 @@ CREATE TABLE "public"."Specialty" (
 
 -- CreateTable
 CREATE TABLE "public"."WorkLocation" (
-    "id" SERIAL NOT NULL,
+    "id" TEXT NOT NULL,
     "name" VARCHAR(200) NOT NULL,
     "address" TEXT NOT NULL,
     "createdAt" TIMESTAMPTZ(6) NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -82,7 +82,7 @@ CREATE TABLE "public"."WorkLocation" (
 
 -- CreateTable
 CREATE TABLE "public"."BlogCategory" (
-    "id" SERIAL NOT NULL,
+    "id" TEXT NOT NULL,
     "name" VARCHAR(100) NOT NULL,
 
     CONSTRAINT "BlogCategory_pkey" PRIMARY KEY ("id")
@@ -90,12 +90,12 @@ CREATE TABLE "public"."BlogCategory" (
 
 -- CreateTable
 CREATE TABLE "public"."Blog" (
-    "id" SERIAL NOT NULL,
+    "id" TEXT NOT NULL,
     "title" VARCHAR(500) NOT NULL,
     "description" TEXT,
     "content" TEXT NOT NULL,
-    "authorId" INTEGER NOT NULL,
-    "categoryId" INTEGER,
+    "authorId" TEXT NOT NULL,
+    "categoryId" TEXT,
     "createdAt" TIMESTAMPTZ(6) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMPTZ(6) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
@@ -104,9 +104,9 @@ CREATE TABLE "public"."Blog" (
 
 -- CreateTable
 CREATE TABLE "public"."Schedule" (
-    "id" SERIAL NOT NULL,
-    "doctorId" INTEGER NOT NULL,
-    "workLocationId" INTEGER NOT NULL,
+    "id" TEXT NOT NULL,
+    "doctorId" TEXT NOT NULL,
+    "workLocationId" TEXT NOT NULL,
     "date" DATE NOT NULL,
     "timeSlotStart" TIME(6) NOT NULL,
     "timeSlotEnd" TIME(6) NOT NULL,
@@ -116,9 +116,9 @@ CREATE TABLE "public"."Schedule" (
 
 -- CreateTable
 CREATE TABLE "public"."Appointment" (
-    "id" SERIAL NOT NULL,
-    "patientId" VARCHAR(12) NOT NULL,
-    "scheduleId" INTEGER NOT NULL,
+    "id" TEXT NOT NULL,
+    "patientId" TEXT NOT NULL,
+    "scheduleId" TEXT NOT NULL,
     "symptoms" TEXT,
     "notes" TEXT,
     "status" "public"."AppointmentStatus" NOT NULL DEFAULT 'BOOKED',
@@ -130,8 +130,8 @@ CREATE TABLE "public"."Appointment" (
 
 -- CreateTable
 CREATE TABLE "public"."Review" (
-    "id" SERIAL NOT NULL,
-    "doctorId" INTEGER NOT NULL,
+    "id" TEXT NOT NULL,
+    "doctorId" TEXT NOT NULL,
     "patientId" TEXT,
     "rating" INTEGER NOT NULL,
     "content" TEXT NOT NULL,
@@ -143,8 +143,8 @@ CREATE TABLE "public"."Review" (
 
 -- CreateTable
 CREATE TABLE "public"."Question" (
-    "id" SERIAL NOT NULL,
-    "specialtyId" INTEGER NOT NULL,
+    "id" TEXT NOT NULL,
+    "specialtyId" TEXT NOT NULL,
     "askerName" VARCHAR(100),
     "askerEmail" CITEXT,
     "title" VARCHAR(100) NOT NULL,
@@ -158,9 +158,9 @@ CREATE TABLE "public"."Question" (
 
 -- CreateTable
 CREATE TABLE "public"."Answer" (
-    "id" SERIAL NOT NULL,
-    "questionId" INTEGER NOT NULL,
-    "doctorId" INTEGER NOT NULL,
+    "id" TEXT NOT NULL,
+    "questionId" TEXT NOT NULL,
+    "doctorId" TEXT NOT NULL,
     "content" TEXT NOT NULL,
     "createdAt" TIMESTAMPTZ(6) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
@@ -169,8 +169,8 @@ CREATE TABLE "public"."Answer" (
 
 -- CreateTable
 CREATE TABLE "public"."DoctorSpecialty" (
-    "doctorId" INTEGER NOT NULL,
-    "specialtyId" INTEGER NOT NULL,
+    "doctorId" TEXT NOT NULL,
+    "specialtyId" TEXT NOT NULL,
 
     CONSTRAINT "DoctorSpecialty_pkey" PRIMARY KEY ("doctorId","specialtyId")
 );
