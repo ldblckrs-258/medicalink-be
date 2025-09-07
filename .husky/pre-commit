@@ -1,7 +1,6 @@
 npx lint-staged
 
 echo "📝 Checking code style..."
-npm run lint:check &
 npm run format:check &
 wait
 
