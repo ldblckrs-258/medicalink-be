@@ -1,9 +1,15 @@
-import { Controller, Get } from '@nestjs/common';
+import { Controller, Get, Headers, Logger } from '@nestjs/common';
 
 @Controller()
 export class AppController {
+  private readonly logger = new Logger(AppController.name);
+
   @Get()
-  getHealth() {
+  getHealth(@Headers('x-keep-alive') keepAlive?: string) {
+    if (keepAlive) {
+      this.logger.log(`Keep-alive request received: ${keepAlive}`);
+    }
+
     return {
       status: 'OK',
       timestamp: new Date().toISOString(),
@@ -13,7 +19,11 @@ export class AppController {
   }
 
   @Get('health')
-  getHealthCheck() {
+  getHealthCheck(@Headers('x-keep-alive') keepAlive?: string) {
+    if (keepAlive) {
+      this.logger.log(`Keep-alive health check: ${keepAlive}`);
+    }
+
     return {
       status: 'OK',
       timestamp: new Date().toISOString(),

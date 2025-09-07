@@ -9,6 +9,7 @@ import authConfig from './auth/config/auth.config';
 import { CommonModule } from './common/common.module';
 import appConfig from './config/app.config';
 import { AllConfigType } from './config/config.type';
+import { KeepAliveModule } from './keep-alive';
 import { StaffAccountsModule } from './staff-accounts/staff-accounts.module';
 import { MorganMiddleware } from './utils/morgan.middleware';
 
@@ -49,6 +50,7 @@ import { MorganMiddleware } from './utils/morgan.middleware';
     PrismaModule,
     AuthModule,
     StaffAccountsModule,
+    KeepAliveModule,
   ],
   controllers: [AppController],
 })
