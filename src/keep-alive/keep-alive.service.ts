@@ -3,14 +3,6 @@ import { ConfigService } from '@nestjs/config';
 import { Cron } from '@nestjs/schedule';
 import { AllConfigType } from '../config/config.type';
 
-interface HealthResponse {
-  status: string;
-  timestamp: string;
-  service?: string;
-  database?: string;
-  version?: string;
-}
-
 @Injectable()
 export class KeepAliveService {
   private readonly logger = new Logger(KeepAliveService.name);
@@ -52,14 +44,8 @@ export class KeepAliveService {
       const duration = Date.now() - startTime;
 
       if (response.ok) {
-        const data = (await response.json()) as HealthResponse;
         this.logger.log(
           `Keep-alive successful: ${response.status} in ${duration}ms`,
-          {
-            status: data.status,
-            timestamp: data.timestamp,
-            duration: `${duration}ms`,
-          },
         );
       } else {
         this.logger.warn(

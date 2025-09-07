@@ -1,10 +1,13 @@
 name: Security & Quality Checks
 
+# Note: Basic code quality (lint, format) is ensured by Husky pre-commit/pre-push hooks
+# This workflow focuses on security audits and advanced quality metrics
+
 on:
   push:
-    branches: [master, main, develop]
+    branches: [master, staging]
   pull_request:
-    branches: [master, main, develop]
+    branches: [master, staging]
   schedule:
     - cron: '0 2 * * 1' # Weekly on Monday at 2 AM
 
@@ -59,20 +62,11 @@ jobs:
       - name: Install dependencies
         run: pnpm install
 
-      - name: Run ESLint
-        run: pnpm run lint
-
-      - name: Run Prettier check
-        run: pnpm run format --check
-
       - name: Generate Prisma Client
         run: pnpm prisma generate
         env:
           DATABASE_URL: postgresql://dummy:dummy@localhost:5432/dummy
           DIRECT_URL: postgresql://dummy:dummy@localhost:5432/dummy
-
-      - name: Check TypeScript compilation
-        run: pnpm run build
 
   coverage:
     name: Test Coverage

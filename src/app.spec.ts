@@ -25,20 +25,14 @@ describe('AppController', () => {
 
   it('should return health status', () => {
     const result = controller.getHealth();
-    expect(result).toHaveProperty('status');
-    expect(result).toHaveProperty('timestamp');
     expect(result).toHaveProperty('service');
     expect(result).toHaveProperty('version');
-    expect(result.status).toBe('OK');
   });
 
   it('should return health check', () => {
     const result = controller.getHealthCheck();
-    expect(result).toHaveProperty('status');
-    expect(result).toHaveProperty('timestamp');
     expect(result).toHaveProperty('service');
     expect(result).toHaveProperty('database');
     expect(result).toHaveProperty('version');
-    expect(result.status).toBe('OK');
   });
 });
