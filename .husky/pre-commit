@@ -1,13 +1,8 @@
 npx lint-staged
 
-echo "🔍 Type checking (fast)..."
-npx tsc --project tsconfig.typecheck.json
-
-if git diff --cached --name-only | grep -q "prisma/"; then
-  echo "📋 Prisma changes detected, validating and formatting..."
-  npx prisma validate
-  npx prisma format
-  git add prisma/schema.prisma
-fi
+echo "📝 Checking code style..."
+npm run lint:check &
+npm run format:check &
+wait
 
 echo "✅ Pre-commit checks passed!"

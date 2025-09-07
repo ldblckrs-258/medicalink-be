@@ -16,11 +16,6 @@ fi
 
 echo "🔍 Running smart pre-push validation..."
 
-# Kiểm tra lint và format song song
-echo "📝 Checking code style..."
-npm run lint:check &
-npm run format:check &
-wait
 
 if git diff HEAD~1..HEAD --name-only | grep -qE '\.(ts|js)$'; then
   echo "🔧 TypeScript changes detected, running type check..."
