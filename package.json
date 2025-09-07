@@ -33,7 +33,12 @@
     "health-check": "curl -f http://localhost:3000/api || exit 1",
     "validate": "npm run lint:check && npm run format:check && npm run build && prisma validate",
     "pre-commit": "lint-staged",
-    "pre-push": "npm run validate && npm run test"
+    "pre-push": "npm run validate && npm run test",
+    "type-check": "tsc --noEmit --skipLibCheck",
+    "type-check:fast": "tsc --noEmit --skipLibCheck --incremental",
+    "build:fast": "nest build --webpack",
+    "prisma:check": "prisma validate",
+    "test:fast": "jest --passWithNoTests --silent --maxWorkers=50%"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.883.0",

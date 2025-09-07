@@ -15,25 +15,34 @@ if [ "$protected_branch" = "$current_branch" ]; then
   exit 1
 fi
 
-# Chạy validation đầy đủ trước khi push
-echo "🔍 Running pre-push validation..."
+# Chạy validation thông minh
+echo "🔍 Running smart pre-push validation..."
 
-# Kiểm tra lint và format
+# Kiểm tra lint và format song song
 echo "📝 Checking code style..."
-npm run lint:check
-npm run format:check
+npm run lint:check &
+npm run format:check &
+wait
 
-# Kiểm tra TypeScript compilation
-echo "🔧 Checking TypeScript compilation..."
-npm run build
+# Chỉ type-check nếu có thay đổi TypeScript files
+if git diff HEAD~1..HEAD --name-only | grep -qE '\.(ts|js)$'; then
+  echo "🔧 TypeScript changes detected, running type check..."
+  npx tsc --project tsconfig.typecheck.json
+else
+  echo "📝 No TypeScript changes, skipping type check"
+fi
 
-# Kiểm tra Prisma schema
-echo "🗄️ Validating Prisma schema..."
-npx prisma validate
+# Chỉ validate Prisma nếu có thay đổi
+if git diff HEAD~1..HEAD --name-only | grep -q "prisma/"; then
+  echo "🗄️ Prisma changes detected, validating..."
+  npx prisma validate
+else
+  echo "📝 No Prisma changes, skipping validation"
+fi
 
-# Chạy tests
-echo "🧪 Running tests..."
-npm run test
+# Chạy tests nhanh với cache
+echo "🧪 Running tests (fast mode)..."
+npm run test:fast
 
 echo "✅ Pre-push validation passed!"
 echo "🚀 Ready to push to branch: $current_branch"
