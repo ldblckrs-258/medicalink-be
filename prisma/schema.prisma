@@ -14,7 +14,6 @@ datasource db {
   directUrl = env("DIRECT_URL")
 }
 
-
 enum StaffRole {
   SUPER_ADMIN
   ADMIN
@@ -46,30 +45,30 @@ enum QuestionStatus {
 }
 
 model StaffAccount {
-  id            String    @id @default(cuid())
-  fullName      String    @db.VarChar(100)
-  email         String    @unique @db.Citext
-  passwordHash  String
-  role          StaffRole
-  gender        Gender    @default(UNKNOWN)
-  dateOfBirth   DateTime? @db.Date
-  createdAt     DateTime  @default(now()) @db.Timestamptz(6)
-  updatedAt     DateTime  @default(now()) @updatedAt @db.Timestamptz(6)
+  id           String    @id @default(cuid())
+  fullName     String    @db.VarChar(100)
+  email        String    @unique @db.Citext
+  passwordHash String
+  role         StaffRole
+  gender       Gender    @default(UNKNOWN)
+  dateOfBirth  DateTime? @db.Date
+  createdAt    DateTime  @default(now()) @db.Timestamptz(6)
+  updatedAt    DateTime  @default(now()) @updatedAt @db.Timestamptz(6)
 
   // Relations
-  doctor        Doctor?
-  blogs         Blog[]
+  doctor Doctor?
+  blogs  Blog[]
 }
 
 model Patient {
-  id           String    @id @default(cuid())
-  fullName     String    @db.VarChar(100)
-  phoneNumber  String?   @db.VarChar(15)
-  email        String?   @db.Citext
-  dateOfBirth  DateTime? @db.Date
-  gender       Gender    @default(UNKNOWN)
-  address      String?
-  createdAt    DateTime  @default(now()) @db.Timestamptz(6)
+  id          String    @id @default(cuid())
+  fullName    String    @db.VarChar(100)
+  phoneNumber String?   @db.VarChar(15)
+  email       String?   @db.Citext
+  dateOfBirth DateTime? @db.Date
+  gender      Gender    @default(UNKNOWN)
+  address     String?
+  createdAt   DateTime  @default(now()) @db.Timestamptz(6)
 
   // Relations
   appointments Appointment[]
@@ -79,25 +78,25 @@ model Patient {
 }
 
 model Doctor {
-  id               String        @id @default(cuid())
-  staffAccountId   String        @unique
-  degree           String?       @db.VarChar(100)
-  position         String[]
-  introduction     String?
-  memberships      String[]
-  awards           String[]
-  research         String?
-  trainingProcess  String[]
-  experience       String[]
-  avatarUrl        String?
-  portrait         String?
+  id              String   @id @default(cuid())
+  staffAccountId  String   @unique
+  degree          String?  @db.VarChar(100)
+  position        String[]
+  introduction    String?
+  memberships     String[]
+  awards          String[]
+  research        String?
+  trainingProcess String[]
+  experience      String[]
+  avatarUrl       String?
+  portrait        String?
 
   // Relations
-  staffAccount     StaffAccount  @relation(fields: [staffAccountId], references: [id])
+  staffAccount      StaffAccount      @relation(fields: [staffAccountId], references: [id])
   doctorSpecialties DoctorSpecialty[]
-  schedules        Schedule[]
-  reviews          Review[]
-  answers          Answer[]
+  schedules         Schedule[]
+  reviews           Review[]
+  answers           Answer[]
 }
 
 model Specialty {
@@ -108,121 +107,121 @@ model Specialty {
 
   // Relations
   doctorSpecialties DoctorSpecialty[]
-  questions        Question[]
+  questions         Question[]
 }
 
 model WorkLocation {
-  id         String   @id @default(cuid())
-  name       String   @db.VarChar(200)
-  address    String
-  createdAt  DateTime @default(now()) @db.Timestamptz(6)
+  id        String   @id @default(cuid())
+  name      String   @db.VarChar(200)
+  address   String
+  createdAt DateTime @default(now()) @db.Timestamptz(6)
 
   // Relations
-  schedules  Schedule[]
+  schedules Schedule[]
 }
 
 model BlogCategory {
-  id    String  @id @default(cuid())
-  name  String  @unique @db.VarChar(100)
+  id   String @id @default(cuid())
+  name String @unique @db.VarChar(100)
 
   // Relations
   blogs Blog[]
 }
 
 model Blog {
-  id          String        @id @default(cuid())
-  title       String        @db.VarChar(500)
+  id          String   @id @default(cuid())
+  title       String   @db.VarChar(500)
   description String?
   content     String
   authorId    String
   categoryId  String?
-  createdAt   DateTime      @default(now()) @db.Timestamptz(6)
-  updatedAt   DateTime      @default(now()) @updatedAt @db.Timestamptz(6)
+  createdAt   DateTime @default(now()) @db.Timestamptz(6)
+  updatedAt   DateTime @default(now()) @updatedAt @db.Timestamptz(6)
 
   // Relations
-  author      StaffAccount  @relation(fields: [authorId], references: [id])
-  category    BlogCategory? @relation(fields: [categoryId], references: [id])
+  author   StaffAccount  @relation(fields: [authorId], references: [id])
+  category BlogCategory? @relation(fields: [categoryId], references: [id])
 
   @@index([categoryId, createdAt])
 }
 
 model Schedule {
-  id              String    @id @default(cuid())
-  doctorId        String
-  workLocationId  String
-  date            DateTime  @db.Date
-  timeSlotStart   DateTime  @db.Time(6)
-  timeSlotEnd     DateTime  @db.Time(6)
+  id             String   @id @default(cuid())
+  doctorId       String
+  workLocationId String
+  date           DateTime @db.Date
+  timeSlotStart  DateTime @db.Time(6)
+  timeSlotEnd    DateTime @db.Time(6)
 
   // Relations
-  doctor          Doctor     @relation(fields: [doctorId], references: [id])
-  workLocation    WorkLocation @relation(fields: [workLocationId], references: [id])
-  appointment     Appointment?
+  doctor       Doctor       @relation(fields: [doctorId], references: [id])
+  workLocation WorkLocation @relation(fields: [workLocationId], references: [id])
+  appointment  Appointment?
 
   @@unique([doctorId, workLocationId, date, timeSlotStart, timeSlotEnd])
   @@index([doctorId, date])
 }
 
 model Appointment {
-  id          String     @id @default(cuid())
-  patientId   String
-  scheduleId  String     @unique
-  symptoms    String?
-  notes       String?
-  status      AppointmentStatus @default(BOOKED)
-  createdAt   DateTime   @default(now()) @db.Timestamptz(6)
-  updatedAt   DateTime   @default(now()) @updatedAt @db.Timestamptz(6)
+  id         String            @id @default(cuid())
+  patientId  String
+  scheduleId String            @unique
+  symptoms   String?
+  notes      String?
+  status     AppointmentStatus @default(BOOKED)
+  createdAt  DateTime          @default(now()) @db.Timestamptz(6)
+  updatedAt  DateTime          @default(now()) @updatedAt @db.Timestamptz(6)
 
   // Relations
-  patient     Patient    @relation(fields: [patientId], references: [id])
-  schedule    Schedule   @relation(fields: [scheduleId], references: [id])
+  patient  Patient  @relation(fields: [patientId], references: [id])
+  schedule Schedule @relation(fields: [scheduleId], references: [id])
 
   @@index([patientId])
   @@index([status, createdAt])
 }
 
 model Review {
-  id           String    @id @default(cuid())
-  doctorId     String
-  patientId    String?
-  rating       Int
-  content      String
-  isAnonymous  Boolean   @default(false)
-  createdAt    DateTime  @default(now()) @db.Timestamptz(6)
+  id          String   @id @default(cuid())
+  doctorId    String
+  patientId   String?
+  rating      Int
+  content     String
+  isAnonymous Boolean  @default(false)
+  createdAt   DateTime @default(now()) @db.Timestamptz(6)
 
   // Relations
-  doctor       Doctor    @relation(fields: [doctorId], references: [id])
-  patient      Patient?  @relation(fields: [patientId], references: [id])
+  doctor  Doctor   @relation(fields: [doctorId], references: [id])
+  patient Patient? @relation(fields: [patientId], references: [id])
 
   @@index([doctorId, createdAt])
 }
 
 model Question {
-  id           String         @id @default(cuid())
-  specialtyId  String
-  askerName    String?        @db.VarChar(100)
-  askerEmail   String?        @db.Citext
-  title        String         @db.VarChar(100)
-  content      String
-  isAnonymous  Boolean        @default(false)
-  status       QuestionStatus @default(PENDING)
-  createdAt    DateTime       @default(now()) @db.Timestamptz(6)
+  id          String         @id @default(cuid())
+  specialtyId String
+  askerName   String?        @db.VarChar(100)
+  askerEmail  String?        @db.Citext
+  title       String         @db.VarChar(100)
+  content     String
+  isAnonymous Boolean        @default(false)
+  status      QuestionStatus @default(PENDING)
+  createdAt   DateTime       @default(now()) @db.Timestamptz(6)
 
   // Relations
-  specialty    Specialty      @relation(fields: [specialtyId], references: [id])
-  answer       Answer?
+  specialty Specialty @relation(fields: [specialtyId], references: [id])
+  answer    Answer?
 }
 
 model Answer {
-  id          String   @id @default(cuid())
-  questionId  String   @unique
-  doctorId    String
-  content     String
-  createdAt   DateTime @default(now()) @db.Timestamptz(6)
+  id         String   @id @default(cuid())
+  questionId String   @unique
+  doctorId   String
+  content    String
+  createdAt  DateTime @default(now()) @db.Timestamptz(6)
 
   // Relations
-  question    Question @relation(fields: [questionId], references: [id])
-  doctor      Doctor   @relation(fields: [doctorId], references: [id])
+  question Question @relation(fields: [questionId], references: [id])
+  doctor   Doctor   @relation(fields: [doctorId], references: [id])
 }
 
 model DoctorSpecialty {
@@ -230,9 +229,8 @@ model DoctorSpecialty {
   specialtyId String
 
   // Relations
-  doctor      Doctor    @relation(fields: [doctorId], references: [id])
-  specialty   Specialty @relation(fields: [specialtyId], references: [id])
+  doctor    Doctor    @relation(fields: [doctorId], references: [id])
+  specialty Specialty @relation(fields: [specialtyId], references: [id])
 
   @@id([doctorId, specialtyId])
 }
-

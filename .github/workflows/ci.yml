@@ -24,6 +24,14 @@ jobs:
         ports:
           - 5432:5432
 
+      redis:
+        image: redis:7-alpine
+        options: >-
+          --health-cmd "redis-cli ping" --health-interval 10s --health-timeout
+          5s --health-retries 5
+        ports:
+          - 6379:6379
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -70,6 +78,9 @@ jobs:
           AUTH_FORGOT_TOKEN_EXPIRES_IN: 10m
           AUTH_CONFIRM_EMAIL_SECRET: test_confirm_email_secret
           AUTH_CONFIRM_EMAIL_TOKEN_EXPIRES_IN: 1d
+          REDIS_HOST: localhost
+          REDIS_PORT: 6379
+          REDIS_DB: 0
 
       - name: Run E2E tests
         run: pnpm run test:e2e
@@ -87,6 +98,9 @@ jobs:
           AUTH_FORGOT_TOKEN_EXPIRES_IN: 10m
           AUTH_CONFIRM_EMAIL_SECRET: test_confirm_email_secret
           AUTH_CONFIRM_EMAIL_TOKEN_EXPIRES_IN: 1d
+          REDIS_HOST: localhost
+          REDIS_PORT: 6379
+          REDIS_DB: 0
 
       - name: Build application
         run: pnpm run build

@@ -10,6 +10,8 @@ import { CommonModule } from './common/common.module';
 import appConfig from './config/app.config';
 import { AllConfigType } from './config/config.type';
 import { KeepAliveModule } from './keep-alive';
+import { RedisModule } from './redis';
+import redisConfig from './redis/config/redis.config';
 import { StaffAccountsModule } from './staff-accounts/staff-accounts.module';
 import { MorganMiddleware } from './utils/morgan.middleware';
 
@@ -17,7 +19,7 @@ import { MorganMiddleware } from './utils/morgan.middleware';
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
-      load: [appConfig, authConfig],
+      load: [appConfig, authConfig, redisConfig],
       envFilePath: ['.env.local', '.env'],
     }),
     I18nModule.forRootAsync({
@@ -47,6 +49,7 @@ import { MorganMiddleware } from './utils/morgan.middleware';
       inject: [ConfigService],
     }),
     CommonModule,
+    RedisModule,
     PrismaModule,
     AuthModule,
     StaffAccountsModule,
