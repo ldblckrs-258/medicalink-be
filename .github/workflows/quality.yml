@@ -2,9 +2,9 @@ name: Security & Quality Checks
 
 on:
   push:
-    branches: [master, main, develop]
+    branches: [master, staging]
   pull_request:
-    branches: [master, main, develop]
+    branches: [master, staging]
   schedule:
     - cron: '0 2 * * 1' # Weekly on Monday at 2 AM
 

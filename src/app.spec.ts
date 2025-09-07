@@ -29,7 +29,6 @@ describe('AppController', () => {
     expect(result).toHaveProperty('timestamp');
     expect(result).toHaveProperty('service');
     expect(result).toHaveProperty('version');
-    expect(result.status).toBe('OK');
   });
 
   it('should return health check', () => {
@@ -39,6 +38,5 @@ describe('AppController', () => {
     expect(result).toHaveProperty('service');
     expect(result).toHaveProperty('database');
     expect(result).toHaveProperty('version');
-    expect(result.status).toBe('OK');
   });
 });

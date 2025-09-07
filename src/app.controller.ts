@@ -11,8 +11,6 @@ export class AppController {
     }
 
     return {
-      status: 'OK',
-      timestamp: new Date().toISOString(),
       service: 'MedicaLink API',
       version: '1.0.0',
     };
@@ -25,8 +23,6 @@ export class AppController {
     }
 
     return {
-      status: 'OK',
-      timestamp: new Date().toISOString(),
       service: 'MedicaLink API',
       database: 'Connected',
       version: '1.0.0',
