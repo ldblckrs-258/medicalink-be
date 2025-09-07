@@ -2,6 +2,7 @@ import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import { Test, TestingModule } from '@nestjs/testing';
 import { PrismaService } from '../../prisma/prisma.service';
+import { RedisService } from '../redis/redis.service';
 import { StaffAccountsService } from '../staff-accounts/staff-accounts.service';
 import { AuthService } from './auth.service';
 
@@ -43,6 +44,21 @@ describe('AuthService', () => {
           provide: ConfigService,
           useValue: {
             get: jest.fn().mockReturnValue('mock-secret'),
+            getOrThrow: jest.fn().mockReturnValue('mock-secret'),
+          },
+        },
+        {
+          provide: RedisService,
+          useValue: {
+            setSession: jest.fn(),
+            getSession: jest.fn(),
+            deleteSession: jest.fn(),
+            blacklistToken: jest.fn(),
+            isTokenBlacklisted: jest.fn(),
+            set: jest.fn(),
+            get: jest.fn(),
+            del: jest.fn(),
+            exists: jest.fn(),
           },
         },
       ],

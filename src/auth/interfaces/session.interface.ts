@@ -15,3 +15,13 @@ export interface CreateSessionData {
   email: string;
   role: StaffRole;
 }
+
+export interface RedisSessionData {
+  id: string;
+  email: string;
+  role: string;
+  sessionId: string;
+  createdAt: Date;
+  lastAccessedAt: Date;
+  expiresAt: Date;
+}

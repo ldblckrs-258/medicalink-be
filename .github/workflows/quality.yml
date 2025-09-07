@@ -84,6 +84,14 @@ jobs:
         ports:
           - 5432:5432
 
+      redis:
+        image: redis:7-alpine
+        options: >-
+          --health-cmd "redis-cli ping" --health-interval 10s --health-timeout
+          5s --health-retries 5
+        ports:
+          - 6379:6379
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -122,6 +130,9 @@ jobs:
           NODE_ENV: test
           JWT_SECRET: test_jwt_secret
           JWT_REFRESH_SECRET: test_jwt_refresh_secret
+          REDIS_HOST: localhost
+          REDIS_PORT: 6379
+          REDIS_DB: 0
 
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v3

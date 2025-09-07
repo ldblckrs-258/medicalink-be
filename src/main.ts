@@ -1,5 +1,7 @@
 import {
   ClassSerializerInterceptor,
+  ConsoleLogger,
+  Logger,
   ValidationPipe,
   VersioningType,
 } from '@nestjs/common';
@@ -14,7 +16,18 @@ import { ResolvePromisesInterceptor } from './utils/serializer.interceptor';
 import validationOptions from './utils/validation-options';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule, { cors: true });
+  const app = await NestFactory.create(AppModule, {
+    cors: true,
+    logger: new ConsoleLogger({
+      prefix: 'Medicalink',
+      colors: true,
+      timestamp: true,
+      maxArrayLength: 10,
+      maxStringLength: 1000,
+      depth: 7,
+    }),
+  });
+  const logger = new Logger('Bootstrap');
   useContainer(app.select(AppModule), { fallbackOnErrors: true });
   const configService = app.get(ConfigService<AllConfigType>);
 
@@ -34,6 +47,10 @@ async function bootstrap() {
     new ClassSerializerInterceptor(app.get(Reflector)),
   );
 
-  await app.listen(configService.getOrThrow('app.port', { infer: true }));
+  const port = configService.get('app.port', { infer: true }) || 3000;
+  const backendDomain = configService.get('app.backendDomain', { infer: true });
+
+  await app.listen(port);
+  logger.log(`Application is running on: ${backendDomain}`);
 }
 void bootstrap();
