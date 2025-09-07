@@ -1,6 +1,3 @@
-#!/usr/bin/env sh
-. "$(dirname -- "$0")/_/husky.sh"
-
 # Chạy lint-staged để kiểm tra các file đã staged
 npx lint-staged
 
