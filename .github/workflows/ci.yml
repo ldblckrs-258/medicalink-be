@@ -1,10 +1,9 @@
 name: CI/CD Pipeline
 # This workflow focuses on integration testing and deployment
+# Only runs on direct pushes to master/staging (after PR merge)
 
 on:
   push:
-    branches: [master, staging]
-  pull_request:
     branches: [master, staging]
 
 jobs:

@@ -2,10 +2,9 @@ name: Security & Quality Checks
 
 # Note: Basic code quality (lint, format) is ensured by Husky pre-commit/pre-push hooks
 # This workflow focuses on security audits and advanced quality metrics
+# Runs on PR validation and weekly security audits
 
 on:
-  push:
-    branches: [master, staging]
   pull_request:
     branches: [master, staging]
   schedule:
