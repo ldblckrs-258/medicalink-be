@@ -1,0 +1,30 @@
+#!/usr/bin/env sh
+. "$(dirname -- "$0")/_/husky.sh"
+
+# Kiểm tra commit message theo chuẩn Conventional Commits
+echo "🔍 Validating commit message format..."
+npx commitlint --edit $1
+
+# Kiểm tra branch name format
+branch_name=$(git symbolic-ref --short HEAD)
+echo "🌿 Current branch: $branch_name"
+
+# Định nghĩa pattern cho branch name
+valid_pattern="^(feature|bugfix|hotfix|release|chore|docs|test|refactor)\/[a-z0-9-]+$|^(master|main|develop|staging)$"
+
+if ! echo "$branch_name" | grep -qE "$valid_pattern"; then
+  echo "❌ Invalid branch name: $branch_name"
+  echo "📋 Branch name must follow the pattern:"
+  echo "   - feature/feature-name"
+  echo "   - bugfix/bug-description"
+  echo "   - hotfix/critical-fix"
+  echo "   - release/version-number"
+  echo "   - chore/task-description"
+  echo "   - docs/documentation-update"
+  echo "   - test/test-description"
+  echo "   - refactor/refactor-description"
+  echo "   - Or be one of: master, main, develop, staging"
+  exit 1
+fi
+
+echo "✅ Commit message and branch name validation passed!"

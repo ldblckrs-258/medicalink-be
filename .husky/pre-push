@@ -1,0 +1,42 @@
+#!/usr/bin/env sh
+. "$(dirname -- "$0")/_/husky.sh"
+
+# Kiểm tra nếu đang push lên master branch
+protected_branch='master'
+current_branch=$(git symbolic-ref HEAD | sed -e 's,.*/\(.*\),\1,')
+
+echo "🌿 Current branch: $current_branch"
+echo "🔒 Protected branch: $protected_branch"
+
+if [ "$protected_branch" = "$current_branch" ]; then
+  echo "🚫 Direct push to master branch is not allowed!"
+  echo "📋 Please follow these steps:"
+  echo "   1. Create a feature branch: git checkout -b feature/your-feature"
+  echo "   2. Make your changes and commit them"
+  echo "   3. Push the feature branch: git push origin feature/your-feature"
+  echo "   4. Create a Pull Request to merge into master"
+  exit 1
+fi
+
+# Chạy validation đầy đủ trước khi push
+echo "🔍 Running pre-push validation..."
+
+# Kiểm tra lint và format
+echo "📝 Checking code style..."
+npm run lint:check
+npm run format:check
+
+# Kiểm tra TypeScript compilation
+echo "🔧 Checking TypeScript compilation..."
+npm run build
+
+# Kiểm tra Prisma schema
+echo "🗄️ Validating Prisma schema..."
+npx prisma validate
+
+# Chạy tests
+echo "🧪 Running tests..."
+npm run test
+
+echo "✅ Pre-push validation passed!"
+echo "🚀 Ready to push to branch: $current_branch"
