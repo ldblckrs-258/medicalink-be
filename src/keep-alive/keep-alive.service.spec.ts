@@ -149,8 +149,7 @@ describe('KeepAliveService', () => {
       );
 
       expect(loggerSpy).toHaveBeenCalledWith(
-        expect.stringContaining('Keep-alive successful: 200'),
-        expect.any(Object),
+        expect.stringMatching(/Keep-alive successful: 200 in \d+ms/),
       );
     });
   });
