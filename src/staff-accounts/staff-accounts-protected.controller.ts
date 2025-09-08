@@ -12,8 +12,8 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { StaffRole } from '@prisma/client';
-import { Roles } from 'src/auth/decorators/roles.decorator';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
+import { Roles } from '../auth/decorators/roles.decorator';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import type { JwtPayloadType } from '../auth/interfaces/jwt.interface';
