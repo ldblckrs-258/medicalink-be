@@ -1,4 +1,4 @@
-import { Gender, StaffRole } from '@prisma/client';
+import { Blog, Doctor, Gender, StaffRole } from '@prisma/client';
 
 export class StaffAccount {
   id: string;
@@ -8,12 +8,13 @@ export class StaffAccount {
   role: StaffRole;
   gender: Gender;
   dateOfBirth?: Date | null;
+  deletedAt?: Date | null;
   createdAt: Date;
   updatedAt: Date;
 
   // Relations
-  doctor?: any; // Will be defined when Doctor module is implemented
-  blogs?: any[]; // Will be defined when Blog module is implemented
+  doctor?: Doctor | null;
+  blogs?: Blog[] | null;
 
   constructor(partial: Partial<StaffAccount>) {
     Object.assign(this, partial);
@@ -38,5 +39,13 @@ export class StaffAccount {
 
   canManageContent(): boolean {
     return this.role === StaffRole.ADMIN || this.role === StaffRole.SUPER_ADMIN;
+  }
+
+  isDeleted(): boolean {
+    return this.deletedAt !== null;
+  }
+
+  isActive(): boolean {
+    return this.deletedAt === null;
   }
 }
