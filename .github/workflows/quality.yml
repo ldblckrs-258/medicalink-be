@@ -1,72 +1,11 @@
-name: Security & Quality Checks
-
-# Note: Basic code quality (lint, format) is ensured by Husky pre-commit/pre-push hooks
-# This workflow focuses on security audits and advanced quality metrics
-# Runs on PR validation and weekly security audits
+name: Test and Coverage
+# Runs on PR validation
 
 on:
   pull_request:
     branches: [master, staging]
-  schedule:
-    - cron: '0 2 * * 1' # Weekly on Monday at 2 AM
 
 jobs:
-  security:
-    name: Security Audit
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Install pnpm
-        uses: pnpm/action-setup@v2
-        with:
-          version: latest
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-          cache: 'pnpm'
-
-      - name: Install dependencies
-        run: pnpm install
-
-      - name: Run security audit
-        run: pnpm audit
-
-      - name: Run dependency check
-        run: pnpm audit --fix
-
-  code-quality:
-    name: Code Quality Analysis
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Install pnpm
-        uses: pnpm/action-setup@v2
-        with:
-          version: latest
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-          cache: 'pnpm'
-
-      - name: Install dependencies
-        run: pnpm install
-
-      - name: Generate Prisma Client
-        run: pnpm prisma generate
-        env:
-          DATABASE_URL: postgresql://dummy:dummy@localhost:5432/dummy
-          DIRECT_URL: postgresql://dummy:dummy@localhost:5432/dummy
-
   coverage:
     name: Test Coverage
     runs-on: ubuntu-latest

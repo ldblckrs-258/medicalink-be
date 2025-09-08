@@ -6,7 +6,7 @@ export class AppController {
 
   @Get()
   getHealth(@Headers('x-keep-alive') keepAlive?: string) {
-    if (keepAlive) {
+    if (keepAlive && process.env.NODE_ENV !== 'production') {
       this.logger.log(`Keep-alive request received: ${keepAlive}`);
     }
 
@@ -18,7 +18,7 @@ export class AppController {
 
   @Get('health')
   getHealthCheck(@Headers('x-keep-alive') keepAlive?: string) {
-    if (keepAlive) {
+    if (keepAlive && process.env.NODE_ENV !== 'production') {
       this.logger.log(`Keep-alive health check: ${keepAlive}`);
     }
 

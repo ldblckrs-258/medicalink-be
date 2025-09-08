@@ -29,7 +29,7 @@ import { MorganMiddleware } from './utils/morgan.middleware';
         }),
         loaderOptions: {
           path: path.join(process.cwd(), 'src/i18n/'),
-          watch: true,
+          watch: process.env.NODE_ENV !== 'production',
         },
       }),
       resolvers: [

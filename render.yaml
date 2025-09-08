@@ -4,14 +4,16 @@ services:
     env: node
     plan: free
     buildCommand:
-      pnpm install && pnpm prisma generate && pnpm run build && pnpm prisma
+      pnpm install && pnpm prisma generate && pnpm run build:prod && pnpm prisma
       migrate deploy
-    startCommand: pnpm run start:prod
+    startCommand: node --max-old-space-size=256 dist/main
     healthCheckPath: /api
     autoDeploy: false # Manual deploy after CI passes
     envVars:
       - key: NODE_ENV
         value: production
+      - key: NODE_OPTIONS
+        value: '--max-old-space-size=256'
       - key: DATABASE_URL
         fromDatabase:
           name: medicalink-db
@@ -21,6 +23,8 @@ services:
       - key: JWT_REFRESH_SECRET
         generateValue: true
       - key: APP_PORT
+        value: '3000'
+      - key: PORT
         value: '3000'
       - key: APP_API_PREFIX
         value: 'api'
