@@ -24,6 +24,13 @@ export class PaginationQueryDto {
   }
 
   /**
+   * Setter for skip property - ignores the value since skip is calculated
+   */
+  set skip(_value: number) {
+    // Intentionally ignore the value - skip should always be calculated
+  }
+
+  /**
    * Get normalized pagination values
    */
   getNormalized(): { page: number; limit: number; skip: number } {

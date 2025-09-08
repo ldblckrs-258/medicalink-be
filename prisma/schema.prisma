@@ -52,6 +52,7 @@ model StaffAccount {
   role         StaffRole
   gender       Gender    @default(UNKNOWN)
   dateOfBirth  DateTime? @db.Date
+  deletedAt    DateTime? @db.Timestamptz(6)
   createdAt    DateTime  @default(now()) @db.Timestamptz(6)
   updatedAt    DateTime  @default(now()) @updatedAt @db.Timestamptz(6)
 

@@ -1,73 +1,83 @@
 import {
+  Body,
   Controller,
   Get,
   HttpCode,
   HttpStatus,
+  Post,
+  Req,
   UseGuards,
 } from '@nestjs/common';
-import { StaffRole } from '@prisma/client';
+import type { Request } from 'express';
+
+import { ResponseUtil } from '../common/utils/response.util';
+import { RateLimit } from '../redis/decorators/rate-limit.decorator';
+import { RateLimitGuard } from '../redis/guards/rate-limit.guard';
+import { ChangePasswordDto } from '../staff-accounts/dto/change-password.dto';
+import { StaffAccountsService } from '../staff-accounts/staff-accounts.service';
+import { AuthService } from './auth.service';
 import { CurrentUser } from './decorators/current-user.decorator';
-import { Roles } from './decorators/roles.decorator';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
-import { RolesGuard } from './guards/roles.guard';
 import type { JwtPayloadType } from './interfaces/jwt.interface';
 
 @Controller('auth')
 export class AuthProtectedController {
+  constructor(
+    private readonly authService: AuthService,
+    private readonly staffAccountsService: StaffAccountsService,
+  ) {}
+
   @Get('profile')
   @UseGuards(JwtAuthGuard)
   @HttpCode(HttpStatus.OK)
-  getProfile(@CurrentUser() user: JwtPayloadType) {
+  async getProfile(@CurrentUser() user: JwtPayloadType) {
+    const staffAccount = await this.staffAccountsService.findOne(
+      user.id,
+      false,
+    );
+
+    const { passwordHash: _passwordHash, ...profileData } = staffAccount;
+
     return {
-      id: user.id,
-      email: user.email,
-      role: user.role,
+      ...profileData,
       sessionId: user.sessionId,
     };
   }
 
-  @Get('admin-only')
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(StaffRole.ADMIN, StaffRole.SUPER_ADMIN)
+  @Post('logout')
   @HttpCode(HttpStatus.OK)
-  adminOnly(@CurrentUser() user: JwtPayloadType) {
-    return {
-      message: 'This endpoint is only accessible by ADMIN or SUPER_ADMIN',
-      user: {
-        id: user.id,
-        email: user.email,
-        role: user.role,
-      },
-    };
+  @RateLimit({ windowMs: 60000, limit: 30 })
+  @UseGuards(JwtAuthGuard, RateLimitGuard)
+  logout(@CurrentUser() user: JwtPayloadType, @Req() req: Request) {
+    const token = this.extractTokenFromHeader(req);
+    return this.authService.logout(user.sessionId, token);
   }
 
-  @Get('super-admin-only')
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(StaffRole.SUPER_ADMIN)
+  @Post('logout-all')
   @HttpCode(HttpStatus.OK)
-  superAdminOnly(@CurrentUser() user: JwtPayloadType) {
-    return {
-      message: 'This endpoint is only accessible by SUPER_ADMIN',
-      user: {
-        id: user.id,
-        email: user.email,
-        role: user.role,
-      },
-    };
+  @RateLimit({ windowMs: 60000, limit: 10 })
+  @UseGuards(JwtAuthGuard, RateLimitGuard)
+  logoutAll(@CurrentUser() user: JwtPayloadType) {
+    return this.authService.logoutAll(user.id);
   }
 
-  @Get('doctor-only')
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(StaffRole.DOCTOR)
+  @Post('change-password')
+  @UseGuards(JwtAuthGuard, RateLimitGuard)
   @HttpCode(HttpStatus.OK)
-  doctorOnly(@CurrentUser() user: JwtPayloadType) {
-    return {
-      message: 'This endpoint is only accessible by DOCTOR',
-      user: {
-        id: user.id,
-        email: user.email,
-        role: user.role,
-      },
-    };
+  @RateLimit({ windowMs: 300000, limit: 3 })
+  async changePassword(
+    @CurrentUser() user: JwtPayloadType,
+    @Body() changePasswordDto: ChangePasswordDto,
+  ) {
+    await this.staffAccountsService.changePassword(user.id, changePasswordDto);
+    return ResponseUtil.success(null, 'Password changed successfully');
+  }
+
+  private extractTokenFromHeader(req: Request): string | undefined {
+    const authHeader = req.headers.authorization;
+    if (!authHeader) return undefined;
+
+    const [type, token] = authHeader.split(' ');
+    return type === 'Bearer' ? token : undefined;
   }
 }

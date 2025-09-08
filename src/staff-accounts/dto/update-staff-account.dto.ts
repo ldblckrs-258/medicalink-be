@@ -8,7 +8,6 @@ import {
   IsOptional,
   IsString,
   MaxLength,
-  MinLength,
 } from 'class-validator';
 import { CreateStaffAccountDto } from './create-staff-account.dto';
 
@@ -22,11 +21,6 @@ export class UpdateStaffAccountDto extends PartialType(CreateStaffAccountDto) {
   @IsEmail()
   @Transform(({ value }: { value: string }) => value?.toLowerCase()?.trim())
   email?: string;
-
-  @IsOptional()
-  @IsString()
-  @MinLength(8)
-  password?: string;
 
   @IsOptional()
   @IsEnum(StaffRole)

@@ -104,19 +104,16 @@ export class ResponseInterceptor<T>
 
     return next.handle().pipe(
       map((data: T | ApiResponseDto<T> | PaginatedResponseDto<T>) => {
-        // If data is already wrapped in ApiResponseDto or PaginatedResponseDto, return as is
-        // Check if this is a pagination response from PaginationHelper
         if (isPaginationResponse<T>(data)) {
           return new PaginatedResponseDto(
             data.data,
             data.meta,
-            'Data retrieved successfully',
+            data.message || 'Data retrieved successfully',
             response.statusCode,
             request.url,
           );
         }
 
-        // Check if data is already wrapped (use structure check instead of instanceof)
         if (isPaginatedResponseDto(data)) {
           return {
             ...(data as PaginatedResponseDto<T>),
