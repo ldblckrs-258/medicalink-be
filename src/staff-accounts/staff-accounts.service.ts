@@ -1,7 +1,6 @@
-import { Injectable } from '@nestjs/common';
-import { Prisma, StaffRole } from '@prisma/client';
+import { Inject, Injectable } from '@nestjs/common';
+import { StaffRole } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
-import { PrismaService } from '../../prisma/prisma.service';
 import { ExceptionUtil } from '../common';
 import { StaffAccount } from './domain/staff-account';
 import { AdminResetPasswordDto } from './dto/admin-reset-password.dto';
@@ -10,19 +9,23 @@ import { CreateStaffAccountDto } from './dto/create-staff-account.dto';
 import { FilterStaffAccountsDto } from './dto/filter-staff-accounts.dto';
 import { ResetPasswordDto } from './dto/reset-password.dto';
 import { UpdateStaffAccountDto } from './dto/update-staff-account.dto';
+import type { StaffAccountRepository } from './repositories';
 
 @Injectable()
 export class StaffAccountsService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    @Inject('StaffAccountRepository')
+    private readonly staffAccountRepository: StaffAccountRepository,
+  ) {}
 
   async create(
     createStaffAccountDto: CreateStaffAccountDto,
   ): Promise<StaffAccount> {
     const { password, dateOfBirth, ...restData } = createStaffAccountDto;
 
-    const existingAccount = await this.prisma.staffAccount.findUnique({
-      where: { email: createStaffAccountDto.email },
-    });
+    const existingAccount = await this.staffAccountRepository.findByEmail(
+      createStaffAccountDto.email,
+    );
 
     if (existingAccount) {
       ExceptionUtil.conflict('Email already exists');
@@ -31,26 +34,20 @@ export class StaffAccountsService {
     const saltRounds = 10;
     const passwordHash = await bcrypt.hash(password, saltRounds);
 
-    const staffAccount = await this.prisma.staffAccount.create({
-      data: {
-        ...restData,
-        passwordHash,
-        dateOfBirth: dateOfBirth ? new Date(dateOfBirth) : undefined,
-      },
-      include: {
-        doctor: true,
-        blogs: true,
-      },
-    });
+    const createData = {
+      ...restData,
+      passwordHash,
+      dateOfBirth: dateOfBirth ? new Date(dateOfBirth) : undefined,
+    };
 
-    return new StaffAccount(staffAccount);
+    return this.staffAccountRepository.create(createData);
   }
 
   async findAll(
     includeRelations = false,
     pagination?: { skip: number; take: number },
   ): Promise<StaffAccount[]> {
-    const staffAccounts = await this.prisma.staffAccount.findMany({
+    return this.staffAccountRepository.findMany({
       where: { deletedAt: null },
       include: includeRelations
         ? {
@@ -63,12 +60,10 @@ export class StaffAccountsService {
       },
       ...(pagination && { skip: pagination.skip, take: pagination.take }),
     });
-
-    return staffAccounts.map((account) => new StaffAccount(account));
   }
 
   async findOne(id: string, includeRelations = false): Promise<StaffAccount> {
-    const staffAccount = await this.prisma.staffAccount.findUnique({
+    const staffAccount = await this.staffAccountRepository.findMany({
       where: { id, deletedAt: null },
       include: includeRelations
         ? {
@@ -76,30 +71,21 @@ export class StaffAccountsService {
             blogs: true,
           }
         : undefined,
+      take: 1,
     });
 
-    if (!staffAccount) {
+    if (!staffAccount || staffAccount.length === 0) {
       ExceptionUtil.notFound('Staff account', id);
     }
 
-    return new StaffAccount(staffAccount);
+    return staffAccount[0];
   }
 
   async findByEmail(
     email: string,
     includeRelations = false,
   ): Promise<StaffAccount | null> {
-    const staffAccount = await this.prisma.staffAccount.findFirst({
-      where: { email, deletedAt: null },
-      include: includeRelations
-        ? {
-            doctor: true,
-            blogs: true,
-          }
-        : undefined,
-    });
-
-    return staffAccount ? new StaffAccount(staffAccount) : null;
+    return this.staffAccountRepository.findByEmail(email, includeRelations);
   }
 
   async findByRole(
@@ -107,21 +93,11 @@ export class StaffAccountsService {
     includeRelations = false,
     pagination?: { skip: number; take: number },
   ): Promise<StaffAccount[]> {
-    const staffAccounts = await this.prisma.staffAccount.findMany({
-      where: { role, deletedAt: null },
-      include: includeRelations
-        ? {
-            doctor: true,
-            blogs: true,
-          }
-        : undefined,
-      orderBy: {
-        createdAt: 'desc',
-      },
-      ...(pagination && { skip: pagination.skip, take: pagination.take }),
-    });
-
-    return staffAccounts.map((account) => new StaffAccount(account));
+    return this.staffAccountRepository.findByRole(
+      role,
+      includeRelations,
+      pagination,
+    );
   }
 
   async update(
@@ -133,25 +109,20 @@ export class StaffAccountsService {
     const { dateOfBirth, email, ...restData } = updateStaffAccountDto;
 
     if (email && email !== existingAccount.email) {
-      const emailExists = await this.prisma.staffAccount.findUnique({
-        where: { email },
-      });
+      const emailExists = await this.staffAccountRepository.findByEmail(email);
 
       if (emailExists) {
         ExceptionUtil.conflict('Email already exists');
       }
     }
 
-    const staffAccount = await this.prisma.staffAccount.update({
-      where: { id },
-      data: {
-        ...restData,
-        ...(email && { email }),
-        ...(dateOfBirth && { dateOfBirth: new Date(dateOfBirth) }),
-      },
-    });
+    const updateData = {
+      ...restData,
+      ...(email && { email }),
+      ...(dateOfBirth && { dateOfBirth: new Date(dateOfBirth) }),
+    };
 
-    return new StaffAccount(staffAccount);
+    return this.staffAccountRepository.update({ id }, updateData);
   }
 
   async changePassword(id: string, changePasswordDto: ChangePasswordDto) {
@@ -176,10 +147,7 @@ export class StaffAccountsService {
     const saltRounds = 10;
     const passwordHash = await bcrypt.hash(newPassword, saltRounds);
 
-    await this.prisma.staffAccount.update({
-      where: { id },
-      data: { passwordHash },
-    });
+    await this.staffAccountRepository.update({ id }, { passwordHash });
   }
 
   async resetPassword(
@@ -208,158 +176,29 @@ export class StaffAccountsService {
       ExceptionUtil.badRequest('Cannot delete Super Admin accounts');
     }
 
-    await this.prisma.staffAccount.update({
-      where: { id },
-      data: { deletedAt: new Date() },
-    });
+    await this.staffAccountRepository.update({ id }, { deletedAt: new Date() });
   }
 
   async count(): Promise<number> {
-    return this.prisma.staffAccount.count({
-      where: { deletedAt: null },
-    });
+    return this.staffAccountRepository.count({ deletedAt: null });
   }
 
   async countByRole(role: StaffRole): Promise<number> {
-    return this.prisma.staffAccount.count({
-      where: { role, deletedAt: null },
-    });
+    return this.staffAccountRepository.countByRole(role);
   }
 
   async findAllWithFilters(
     filterDto: FilterStaffAccountsDto,
     pagination?: { skip: number; take: number },
   ): Promise<StaffAccount[]> {
-    const {
-      role,
-      gender,
-      search,
-      email,
-      createdFrom,
-      createdTo,
-      includeRelations,
-      sortBy,
-      sortOrder,
-    } = filterDto;
-
-    const where: Prisma.StaffAccountWhereInput = {
-      deletedAt: null,
-    };
-
-    if (role) {
-      where.role = role;
-    }
-
-    if (gender) {
-      where.gender = gender;
-    }
-
-    if (email) {
-      where.email = {
-        contains: email,
-        mode: 'insensitive',
-      };
-    }
-
-    if (search) {
-      where.OR = [
-        {
-          fullName: {
-            contains: search,
-            mode: 'insensitive',
-          },
-        },
-        {
-          email: {
-            contains: search,
-            mode: 'insensitive',
-          },
-        },
-      ];
-    }
-
-    if (createdFrom || createdTo) {
-      where.createdAt = {};
-      if (createdFrom) {
-        where.createdAt.gte = new Date(createdFrom);
-      }
-      if (createdTo) {
-        where.createdAt.lte = new Date(createdTo);
-      }
-    }
-
-    const orderBy: Prisma.StaffAccountOrderByWithRelationInput = {};
-    if (sortBy) {
-      orderBy[sortBy] = sortOrder || 'desc';
-    } else {
-      orderBy.createdAt = 'desc';
-    }
-
-    const staffAccounts = await this.prisma.staffAccount.findMany({
-      where,
-      include: includeRelations
-        ? {
-            doctor: true,
-            blogs: true,
-          }
-        : undefined,
-      orderBy,
-      ...(pagination && { skip: pagination.skip, take: pagination.take }),
-    });
-
-    return staffAccounts.map((account) => new StaffAccount(account));
+    return this.staffAccountRepository.findAllWithFilters(
+      filterDto,
+      pagination,
+    );
   }
 
   async countWithFilters(filterDto: FilterStaffAccountsDto): Promise<number> {
-    const { role, gender, search, email, createdFrom, createdTo } = filterDto;
-
-    const where: Prisma.StaffAccountWhereInput = {
-      deletedAt: null,
-    };
-
-    if (role) {
-      where.role = role;
-    }
-
-    if (gender) {
-      where.gender = gender;
-    }
-
-    if (email) {
-      where.email = {
-        contains: email,
-        mode: 'insensitive',
-      };
-    }
-
-    if (search) {
-      where.OR = [
-        {
-          fullName: {
-            contains: search,
-            mode: 'insensitive',
-          },
-        },
-        {
-          email: {
-            contains: search,
-            mode: 'insensitive',
-          },
-        },
-      ];
-    }
-
-    if (createdFrom || createdTo) {
-      where.createdAt = {};
-      if (createdFrom) {
-        where.createdAt.gte = new Date(createdFrom);
-      }
-      if (createdTo) {
-        where.createdAt.lte = new Date(createdTo);
-      }
-    }
-
-    return this.prisma.staffAccount.count({ where });
+    return this.staffAccountRepository.countWithFilters(filterDto);
   }
 
   async adminResetPassword(
@@ -381,10 +220,10 @@ export class StaffAccountsService {
     const saltRounds = 10;
     const passwordHash = await bcrypt.hash(newPassword, saltRounds);
 
-    await this.prisma.staffAccount.update({
-      where: { id: staffAccountId },
-      data: { passwordHash },
-    });
+    await this.staffAccountRepository.adminResetPassword(
+      staffAccountId,
+      passwordHash,
+    );
   }
 
   async adminDelete(id: string, adminId: string): Promise<void> {
@@ -398,42 +237,31 @@ export class StaffAccountsService {
       ExceptionUtil.badRequest('Cannot delete your own account');
     }
 
-    await this.prisma.staffAccount.update({
-      where: { id },
-      data: { deletedAt: new Date() },
-    });
+    await this.staffAccountRepository.adminDelete(id);
   }
 
   async restoreAccount(id: string): Promise<void> {
-    const existingAccount = await this.prisma.staffAccount.findUnique({
+    const existingAccount = await this.staffAccountRepository.findMany({
       where: { id },
+      take: 1,
     });
 
-    if (!existingAccount) {
+    if (!existingAccount || existingAccount.length === 0) {
       ExceptionUtil.notFound('Staff account', id);
     }
 
-    if (!existingAccount.deletedAt) {
+    if (!existingAccount[0].deletedAt) {
       ExceptionUtil.badRequest('Account is not deleted');
     }
 
-    await this.prisma.staffAccount.update({
-      where: { id },
-      data: { deletedAt: null },
-    });
+    await this.staffAccountRepository.update({ id }, { deletedAt: null });
   }
 
   async findDeletedAccounts(pagination?: {
     skip: number;
     take: number;
   }): Promise<StaffAccount[]> {
-    const deletedAccounts = await this.prisma.staffAccount.findMany({
-      where: { deletedAt: { not: null } },
-      orderBy: { deletedAt: 'desc' },
-      ...(pagination && { skip: pagination.skip, take: pagination.take }),
-    });
-
-    return deletedAccounts.map((account) => new StaffAccount(account));
+    return this.staffAccountRepository.findDeletedAccounts(pagination);
   }
 
   async getStatistics(): Promise<{
@@ -442,36 +270,6 @@ export class StaffAccountsService {
     recentlyCreated: number;
     active: number;
   }> {
-    const [total, adminCount, doctorCount, superAdminCount] = await Promise.all(
-      [
-        this.count(),
-        this.countByRole(StaffRole.ADMIN),
-        this.countByRole(StaffRole.DOCTOR),
-        this.countByRole(StaffRole.SUPER_ADMIN),
-      ],
-    );
-
-    const thirtyDaysAgo = new Date();
-    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-
-    const recentlyCreated = await this.prisma.staffAccount.count({
-      where: {
-        deletedAt: null,
-        createdAt: {
-          gte: thirtyDaysAgo,
-        },
-      },
-    });
-
-    return {
-      total,
-      byRole: {
-        [StaffRole.SUPER_ADMIN]: superAdminCount,
-        [StaffRole.ADMIN]: adminCount,
-        [StaffRole.DOCTOR]: doctorCount,
-      },
-      recentlyCreated,
-      active: total,
-    };
+    return this.staffAccountRepository.getStatistics();
   }
 }

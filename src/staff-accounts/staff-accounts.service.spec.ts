@@ -1,33 +1,44 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { PrismaService } from '../../prisma/prisma.service';
+import { StaffAccountRepository } from './repositories';
 import { StaffAccountsService } from './staff-accounts.service';
 
 describe('StaffAccountsService', () => {
   let service: StaffAccountsService;
-  let prismaService: PrismaService;
+  let repository: StaffAccountRepository;
   let module: TestingModule;
+
+  const mockRepository = {
+    create: jest.fn(),
+    findUnique: jest.fn(),
+    findMany: jest.fn(),
+    update: jest.fn(),
+    delete: jest.fn(),
+    count: jest.fn(),
+    findByEmail: jest.fn(),
+    findByRole: jest.fn(),
+    findAllWithFilters: jest.fn(),
+    countWithFilters: jest.fn(),
+    countByRole: jest.fn(),
+    findDeletedAccounts: jest.fn(),
+    getStatistics: jest.fn(),
+    findByEmailWithPassword: jest.fn(),
+    adminResetPassword: jest.fn(),
+    adminDelete: jest.fn(),
+  };
 
   beforeEach(async () => {
     module = await Test.createTestingModule({
       providers: [
         StaffAccountsService,
         {
-          provide: PrismaService,
-          useValue: {
-            staffAccount: {
-              findMany: jest.fn(),
-              findUnique: jest.fn(),
-              create: jest.fn(),
-              update: jest.fn(),
-              delete: jest.fn(),
-            },
-          },
+          provide: 'StaffAccountRepository',
+          useValue: mockRepository,
         },
       ],
     }).compile();
 
     service = module.get<StaffAccountsService>(StaffAccountsService);
-    prismaService = module.get<PrismaService>(PrismaService);
+    repository = module.get<StaffAccountRepository>('StaffAccountRepository');
   });
 
   afterEach(async () => {
@@ -40,7 +51,7 @@ describe('StaffAccountsService', () => {
     expect(service).toBeDefined();
   });
 
-  it('should have prisma service injected', () => {
-    expect(prismaService).toBeDefined();
+  it('should have repository injected', () => {
+    expect(repository).toBeDefined();
   });
 });
