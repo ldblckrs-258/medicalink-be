@@ -73,7 +73,7 @@ export class RateLimitGuard implements CanActivate {
 
   private getDefaultKey(request: Request): string {
     const ip = request.ip || request.connection.remoteAddress || 'unknown';
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+
     const route = ((request as any).route?.path as string) || request.url;
     return `rate_limit:${ip}:${route}`;
   }
